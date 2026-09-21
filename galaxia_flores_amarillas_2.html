@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Para mi niña 🌻</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#010202}
+body{font-family:Georgia,"Times New Roman",serif;color:#fff}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.ui{position:fixed;inset:0;pointer-events:none;z-index:5}
+.badge{
+ position:absolute;top:25px;left:50%;transform:translateX(-50%);
+ padding:10px 20px;border-radius:30px;white-space:nowrap;
+ color:#302400;font:bold 15px Arial,sans-serif;
+ background:linear-gradient(#fff66a,#d7ae00);
+ border:1px solid #fff9a9;
+ box-shadow:0 0 18px #ffd83d,0 0 45px #b98200;
+}
+.message{
+ position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:90%;text-align:center;
+ text-shadow:0 0 8px #000,0 0 20px #ffdf38;
+}
+.message h1{font-size:clamp(25px,8vw,54px);margin:0 0 8px;color:#fff6a0}
+.message p{font-size:clamp(15px,4.5vw,25px);margin:0}
+.hint{
+ position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+ padding:10px 17px;border-radius:24px;
+ background:rgba(30,24,0,.65);border:1px solid rgba(255,226,75,.7);
+ color:#fff4a0;font:14px Arial,sans-serif;
+ box-shadow:0 0 18px rgba(255,213,48,.25)
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="ui">
+  <div class="badge">🌻 Feliz Día de las Flores Amarillas 🌻</div>
+  <div class="message">
+    <h1>Para mi niña 💛</h1>
+    <p>Siempre contigo · L + J ✨</p>
+  </div>
+  <div class="hint">Toca la pantalla 🌻</div>
+</div>
+
+<script>
+const canvas=document.getElementById("c");
+const ctx=canvas.getContext("2d");
+let W,H,DPR,cx,cy;
+let t=0, last=0;
+const stars=[], flowers=[], motes=[], bursts=[];
+const TAU=Math.PI*2;
+
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=innerWidth; H=innerHeight;
+  canvas.width=W*DPR; canvas.height=H*DPR;
+  canvas.style.width=W+"px"; canvas.style.height=H+"px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  cx=W/2; cy=H*.53;
+  makeStars(); makeFlowers(); makeMotes();
+}
+addEventListener("resize",resize);
+
+function rand(a,b){return a+Math.random()*(b-a)}
+
+function makeStars(){
+  stars.length=0;
+  for(let i=0;i<180;i++) stars.push({
+    x:Math.random()*W,y:Math.random()*H,
+    r:rand(.4,1.8),p:rand(0,TAU),s:rand(.5,2.2)
+  });
+}
+
+function makeMotes(){
+  motes.length=0;
+  for(let i=0;i<90;i++) motes.push({
+    a:rand(0,TAU),r:rand(90,Math.min(W,H)*.48),
+    z:rand(.5,1.5),speed:rand(.08,.22),size:rand(1,3)
+  });
+}
+
+function makeFlowers(){
+  flowers.length=0;
+  // Muchos girasoles en órbitas elípticas, como la referencia.
+  for(let i=0;i<42;i++){
+    flowers.push({
+      a:rand(0,TAU),
+      r:rand(100,Math.min(W,H)*.48),
+      yScale:rand(.35,.72),
+      size:rand(15,34),
+      speed:rand(.06,.16)*(Math.random()<.5?-1:1),
+      phase:rand(0,TAU),
+      depth:rand(.65,1.25)
+    });
+  }
+}
+
+function glowCircle(x,y,r,color,blur){
+  ctx.save();
+  ctx.shadowColor=color;ctx.shadowBlur=blur;
+  ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
+  ctx.restore();
+}
+
+function drawFlower(x,y,size,rot,alpha=1){
+  ctx.save();
+  ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=alpha;
+  ctx.shadowColor="rgba(255,210,40,.9)";ctx.shadowBlur=size*.7;
+  for(let i=0;i<10;i++){
+    ctx.rotate(TAU/10);
+    ctx.fillStyle=i%2?"#ffd928":"#ffec65";
+    ctx.beginPath();
+    ctx.ellipse(0,-size*.42,size*.19,size*.43,0,0,TAU);
+    ctx.fill();
+  }
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#4a2504";ctx.beginPath();ctx.arc(0,0,size*.22,0,TAU);ctx.fill();
+  ctx.fillStyle="#1b1204";ctx.beginPath();ctx.arc(0,0,size*.11,0,TAU);ctx.fill();
+  ctx.restore();
+}
+
+function drawGalaxy(){
+  const R=Math.min(W,H)*.16;
+  // Halo
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*2.5);
+  g.addColorStop(0,"rgba(255,238,112,.35)");
+  g.addColorStop(.35,"rgba(255,201,30,.16)");
+  g.addColorStop(1,"rgba(255,180,0,0)");
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*2.5,0,TAU);ctx.fill();
+
+  // Rotating luminous sphere
+  const sphere=ctx.createRadialGradient(cx-R*.25,cy-R*.3,R*.05,cx,cy,R);
+  sphere.addColorStop(0,"#fff8a6");
+  sphere.addColorStop(.18,"#ffd93d");
+  sphere.addColorStop(.52,"#9a6d08");
+  sphere.addColorStop(.82,"#3f2a03");
+  sphere.addColorStop(1,"rgba(10,8,1,.2)");
+  ctx.save();
+  ctx.shadowColor="#ffc928";ctx.shadowBlur=35;
+  ctx.fillStyle=sphere;ctx.beginPath();ctx.arc(cx,cy,R,0,TAU);ctx.fill();
+  ctx.restore();
+
+  // glowing orbit rings
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(t*.18);
+  ctx.scale(1,.32);
+  for(let k=0;k<3;k++){
+    ctx.strokeStyle=`rgba(255,226,70,${.42-k*.1})`;
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(0,0,R*(1.35+k*.25),R*(1.35+k*.25),0,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Sparkle marks on sphere
+  for(let i=0;i<14;i++){
+    const a=i*2.31+t*.25;
+    const rr=R*rand(.25,.78);
+    const x=cx+Math.cos(a)*rr;
+    const y=cy+Math.sin(a)*rr*.65;
+    ctx.fillStyle="rgba(255,248,168,.8)";
+    ctx.font=(8+R*.05)+"px Arial";
+    ctx.fillText("✦",x,y);
+  }
+}
+
+function draw(){
+  const dt=Math.min((performance.now()-last)/1000,.04);last=performance.now();t+=dt;
+  ctx.clearRect(0,0,W,H);
+
+  // Fondo negro con niebla dorada
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(W,H)*.72);
+  bg.addColorStop(0,"#3d3207");
+  bg.addColorStop(.25,"#151203");
+  bg.addColorStop(.58,"#050603");
+  bg.addColorStop(1,"#010101");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  // Estrellas que titilan
+  for(const s of stars){
+    const a=.25+.75*(.5+.5*Math.sin(t*s.s+s.p));
+    ctx.globalAlpha=a;
+    ctx.fillStyle="#fff5ae";
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,TAU);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // Polvo orbital
+  for(const m of motes){
+    m.a+=m.speed*dt;
+    const x=cx+Math.cos(m.a+t*.08)*m.r;
+    const y=cy+Math.sin(m.a+t*.08)*m.r*.48;
+    ctx.globalAlpha=.25;
+    glowCircle(x,y,m.size,"#ffe75a",8);
+  }
+  ctx.globalAlpha=1;
+
+  drawGalaxy();
+
+  // Flores en profundidad
+  const sorted=[...flowers].sort((a,b)=>a.depth-b.depth);
+  for(const f of sorted){
+    f.a+=f.speed*dt;
+    const rr=f.r*(.93+.07*Math.sin(t*.7+f.phase));
+    const x=cx+Math.cos(f.a+t*.035)*rr;
+    const y=cy+Math.sin(f.a+t*.035)*rr*f.yScale;
+    const depth=.6+.4*(Math.sin(f.a)+1)/2;
+    const size=f.size*depth;
+    drawFlower(x,y,size,f.a+t*.5,depth);
+  }
+
+  // Explosiones de flores al tocar
+  for(let i=bursts.length-1;i>=0;i--){
+    const b=bursts[i];
+    b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy+=55*dt;
+    const alpha=Math.max(0,b.life/1.5);
+    drawFlower(b.x,b.y,b.size,b.rot,alpha);
+    if(b.life<=0) bursts.splice(i,1);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+function burst(x,y){
+  for(let i=0;i<28;i++){
+    const a=Math.random()*TAU, v=rand(70,270);
+    bursts.push({
+      x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,
+      size:rand(8,20),rot:rand(0,TAU),life:rand(.8,1.7)
+    });
+  }
+}
+
+addEventListener("pointerdown",e=>burst(e.clientX,e.clientY));
+resize();
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
