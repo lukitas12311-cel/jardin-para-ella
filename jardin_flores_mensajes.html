@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Un jardín para ti 🌻</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  background:#020301;
+  color:white;
+  font-family:Georgia,"Times New Roman",serif;
+}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+
+.top{
+  position:fixed;z-index:10;top:22px;left:50%;
+  transform:translateX(-50%);
+  padding:10px 18px;border-radius:28px;
+  white-space:nowrap;text-align:center;
+  background:linear-gradient(#fff76b,#d0a900);
+  color:#332600;font:bold 15px Arial;
+  box-shadow:0 0 20px #ffd92e;
+  border:1px solid #fff9a6;
+}
+
+.intro{
+  position:fixed;z-index:10;top:82px;left:50%;
+  transform:translateX(-50%);
+  width:90%;text-align:center;
+  text-shadow:0 0 10px #000,0 0 18px #d9a900;
+}
+.intro h1{margin:0;font-size:clamp(25px,7vw,45px);color:#fff5a0}
+.intro p{margin:6px 0;font-size:15px}
+
+#garden{position:fixed;inset:0;z-index:5}
+
+.flower{
+  position:absolute;
+  width:82px;height:82px;
+  transform:translate(-50%,-50%);
+  cursor:pointer;
+  user-select:none;
+  filter:drop-shadow(0 0 9px rgba(255,216,55,.8));
+  transition:transform .2s;
+}
+.flower:active{transform:translate(-50%,-50%) scale(.82)}
+
+.petals{
+  position:absolute;inset:4px;
+  animation:spin 10s linear infinite;
+}
+.petal{
+  position:absolute;left:50%;top:50%;
+  width:21px;height:38px;
+  margin-left:-10.5px;margin-top:-19px;
+  border-radius:60% 60% 45% 45%;
+  background:linear-gradient(#fff06a,#ffbf12);
+  box-shadow:0 0 9px #ffc928;
+  transform-origin:50% 19px;
+}
+.center{
+  position:absolute;left:50%;top:50%;
+  width:25px;height:25px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle,#f2c12b 0 20%,#4c2602 22% 70%,#160d01 72%);
+  box-shadow:0 0 12px #ffd83d;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.note{
+  position:absolute;
+  left:50%;top:100%;
+  transform:translate(-50%,8px) scale(.7);
+  width:150px;
+  padding:7px 9px;
+  border-radius:12px;
+  background:rgba(20,15,1,.78);
+  border:1px solid rgba(255,224,80,.55);
+  color:#fff8c1;
+  font-size:12px;
+  line-height:1.25;
+  text-align:center;
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+  text-shadow:0 0 5px #000;
+}
+.flower.open{z-index:30}
+.flower.open .note{
+  opacity:1;
+  transform:translate(-50%,8px) scale(1);
+}
+
+#centerOrb{
+  position:absolute;left:50%;top:52%;
+  transform:translate(-50%,-50%);
+  width:min(145px,32vw);height:min(145px,32vw);
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff9ae,#ffd72e 18%,#966d08 52%,#241701 76%,transparent 77%);
+  box-shadow:0 0 30px #ffd62e,0 0 80px rgba(255,202,30,.4);
+  animation:pulse 3s ease-in-out infinite;
+}
+#centerOrb:after{
+  content:"L + J";
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  color:#fff6a3;font:bold 24px Georgia;
+  text-shadow:0 0 8px #000,0 0 15px #ffd72e;
+}
+@keyframes pulse{
+  50%{transform:translate(-50%,-50%) scale(1.08)}
+}
+
+.bottom{
+  position:fixed;z-index:20;bottom:18px;left:50%;
+  transform:translateX(-50%);
+  width:90%;text-align:center;
+  color:#fff1a0;font:13px Arial;
+  text-shadow:0 0 8px #000;
+}
+
+.spark{
+  position:absolute;
+  color:#fff4a0;
+  animation:twinkle 2s infinite alternate;
+}
+@keyframes twinkle{
+  from{opacity:.2;transform:scale(.6)}
+  to{opacity:1;transform:scale(1.2)}
+}
+</style>
+</head>
+<body>
+
+<canvas id="sky"></canvas>
+
+<div class="top">🌻 Un pequeño jardín para ti 🌻</div>
+
+<div class="intro">
+  <h1>Para mi niña 💛</h1>
+  <p>Cada flor guarda algo que quiero decirte...</p>
+</div>
+
+<div id="garden"></div>
+<div id="centerOrb"></div>
+
+<div class="bottom">Toca cada 🌻 para descubrir su mensaje</div>
+
+<script>
+const garden=document.getElementById("garden");
+
+const mensajes=[
+ "Gracias por llegar a mi vida. 💛",
+ "Me encanta la forma en que me haces sentir.",
+ "Contigo, hasta un día normal se vuelve especial.",
+ "Tu sonrisa tiene un lugarcito en mi corazón. 🌻",
+ "Admiro muchísimo la persona que eres.",
+ "Quiero seguir construyendo recuerdos contigo.",
+ "Eres una de mis partes favoritas de cada día.",
+ "Me gusta quererte, incluso en los pequeños detalles.",
+ "No necesito grandes cosas cuando estás tú.",
+ "Gracias por hacerme sentir querido. 🥺",
+ "Siempre voy a valorar cada momento contigo.",
+ "Tu forma de querer es algo que atesoro.",
+ "Me haces sonreír incluso sin darte cuenta.",
+ "Ojalá podamos llenar nuestro jardín de recuerdos.",
+ "Te quiero muchísimo, mi niña. 💛"
+];
+
+const posiciones=[
+ [12,31],[29,27],[49,25],[70,29],[88,34],
+ [8,49],[25,46],[76,46],[93,51],
+ [13,69],[31,67],[70,67],[88,70],
+ [27,83],[73,84]
+];
+
+function crearFlor(i){
+ const f=document.createElement("div");
+ f.className="flower";
+ f.style.left=posiciones[i][0]+"%";
+ f.style.top=posiciones[i][1]+"%";
+ f.style.animationDelay=(i*.15)+"s";
+
+ const petals=document.createElement("div");
+ petals.className="petals";
+
+ for(let p=0;p<10;p++){
+   const petal=document.createElement("div");
+   petal.className="petal";
+   petal.style.transform=`rotate(${p*36}deg) translateY(-18px)`;
+   petals.appendChild(petal);
+ }
+ f.appendChild(petals);
+
+ const c=document.createElement("div");
+ c.className="center";
+ f.appendChild(c);
+
+ const note=document.createElement("div");
+ note.className="note";
+ note.textContent=mensajes[i];
+ f.appendChild(note);
+
+ f.addEventListener("click",e=>{
+   e.stopPropagation();
+   document.querySelectorAll(".flower.open").forEach(x=>{
+     if(x!==f)x.classList.remove("open");
+   });
+   f.classList.toggle("open");
+   explosion(f);
+ });
+ garden.appendChild(f);
+}
+mensajes.forEach((_,i)=>crearFlor(i));
+
+/* Estrellas */
+const canvas=document.getElementById("sky");
+const ctx=canvas.getContext("2d");
+let W,H,DPR,stars=[],t=0;
+
+function resize(){
+ W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);
+ canvas.width=W*DPR;canvas.height=H*DPR;
+ ctx.setTransform(DPR,0,0,DPR,0,0);
+ stars=[];
+ for(let i=0;i<160;i++)stars.push({
+   x:Math.random()*W,y:Math.random()*H,
+   r:.4+Math.random()*1.6,
+   phase:Math.random()*6.28,
+   speed:.5+Math.random()*2
+ });
+}
+resize();addEventListener("resize",resize);
+
+function draw(){
+ t+=.016;
+ const g=ctx.createRadialGradient(W/2,H*.52,0,W/2,H*.52,Math.max(W,H)*.7);
+ g.addColorStop(0,"#493b08");
+ g.addColorStop(.22,"#171303");
+ g.addColorStop(.55,"#050603");
+ g.addColorStop(1,"#010101");
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+
+ for(const s of stars){
+   ctx.globalAlpha=.25+.75*(.5+.5*Math.sin(t*s.speed+s.phase));
+   ctx.fillStyle="#fff4a0";
+   ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+
+ requestAnimationFrame(draw);
+}
+draw();
+
+/* Pequeña explosión dorada al abrir una flor */
+function explosion(f){
+ const r=f.getBoundingClientRect();
+ const x=r.left+r.width/2,y=r.top+r.height/2;
+ for(let i=0;i<10;i++){
+   const s=document.createElement("div");
+   s.className="spark";
+   s.textContent=Math.random()>.4?"✦":"🌼";
+   s.style.left=x+"px";s.style.top=y+"px";
+   s.style.position="fixed";s.style.zIndex=100;
+   const dx=(Math.random()*120-60),dy=(Math.random()*120-60);
+   s.animate([
+     {transform:"translate(0,0) scale(.4)",opacity:1},
+     {transform:`translate(${dx}px,${dy}px) scale(1.2)`,opacity:0}
+   ],{duration:900,easing:"ease-out"});
+   document.body.appendChild(s);
+   setTimeout(()=>s.remove(),950);
+ }
+}
+</script>
+</body>
+</html>
